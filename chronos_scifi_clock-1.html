@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#050816">
+<title>CHRONOS // Digital Time Interface</title>
+<style>
+:root{color-scheme:dark;--bg:#050816;--panel:rgba(12,20,45,.72);--cyan:#55f6ff;--violet:#9d6bff;--pink:#ff4fd8;--muted:#8293b9;--line:rgba(100,225,255,.22)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:#edfaff;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 18% 18%,rgba(69,73,255,.2),transparent 36%),radial-gradient(ellipse at 82% 72%,rgba(0,230,255,.13),transparent 35%),linear-gradient(rgba(85,246,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(85,246,255,.035) 1px,transparent 1px);background-size:auto,auto,42px 42px,42px 42px;mask-image:linear-gradient(to bottom,#000 10%,rgba(0,0,0,.6) 80%,transparent)}
+.stars{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.star{position:absolute;width:2px;height:2px;border-radius:50%;background:#9dfaff;box-shadow:0 0 8px #55f6ff;animation:twinkle 3s ease-in-out infinite alternate}
+@keyframes twinkle{from{opacity:.2;transform:scale(.7)}to{opacity:1;transform:scale(1.5)}}
+.shell{position:relative;max-width:1120px;margin:auto;padding:28px 22px 36px;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);padding:7px 0 20px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:850;letter-spacing:.19em;font-size:14px}
+.logo{width:38px;height:38px;border:1px solid var(--cyan);border-radius:12px;display:grid;place-items:center;color:var(--cyan);box-shadow:0 0 22px #55f63322,inset 0 0 18px #55f63318;font-size:20px}
+.status{display:flex;align-items:center;gap:9px;color:#a4b6d9;font-size:11px;letter-spacing:.16em}
+.dot{width:7px;height:7px;border-radius:50%;background:#59ffb0;box-shadow:0 0 12px #59ffb0;animation:pulse 1.8s infinite}
+@keyframes pulse{50%{opacity:.35}}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:54px 0 45px;text-align:center}
+.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:.32em;font-weight:750;margin-bottom:18px}
+h1{font-size:clamp(34px,6vw,68px);line-height:1.02;letter-spacing:-.045em;margin:0 0 12px;font-weight:800;text-shadow:0 0 34px #55f6ff25}
+.subtitle{color:var(--muted);font-size:14px;letter-spacing:.06em;margin:0 0 43px}
+.clock-wrap{position:relative;width:min(100%,780px);padding:34px 20px 28px;border:1px solid rgba(85,246,255,.36);border-radius:28px;background:linear-gradient(135deg,rgba(14,27,57,.88),rgba(11,13,34,.72));box-shadow:0 0 70px rgba(49,102,255,.12),inset 0 0 55px rgba(85,246,255,.035);overflow:hidden}
+.clock-wrap:before,.clock-wrap:after{content:"";position:absolute;width:90px;height:90px;border:1px solid var(--cyan);opacity:.45;pointer-events:none}
+.clock-wrap:before{top:-58px;left:-58px;transform:rotate(45deg)}
+.clock-wrap:after{right:-58px;bottom:-58px;transform:rotate(45deg)}
+.clock-label{font-size:10px;letter-spacing:.3em;color:#9bb4d7;margin-bottom:17px}
+.time{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:clamp(48px,11.5vw,112px);font-weight:750;line-height:1.1;letter-spacing:.025em;color:#d8fdff;text-shadow:0 0 12px #55f6ff9c,0 0 44px #55f6ff4d;white-space:nowrap;font-variant-numeric:tabular-nums}
+.time .colon{color:var(--cyan);animation:blink 1s steps(2,start) infinite}
+@keyframes blink{to{opacity:.4}}
+.date{margin-top:17px;color:#b1c3e4;font-size:14px;letter-spacing:.11em}
+.tz-line{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:12px;color:#7f94bd;font-size:11px;letter-spacing:.16em}
+.tz-line svg{width:13px;height:13px;color:var(--cyan)}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;width:min(100%,780px);margin-top:18px}
+.metric{border:1px solid var(--line);background:rgba(8,16,38,.72);border-radius:17px;padding:17px 10px 15px}
+.metric .label{font-size:9px;letter-spacing:.2em;color:#8398c2;margin-bottom:10px}
+.metric .value{font-family:Consolas,monospace;font-size:clamp(15px,3vw,22px);color:#c8faff;font-weight:700}
+.controls{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:28px}
+button,select{border:1px solid rgba(85,246,255,.3);background:rgba(13,26,54,.85);color:#dffcff;border-radius:12px;padding:12px 15px;font:inherit;font-size:12px;letter-spacing:.04em;cursor:pointer;transition:.2s}
+button:hover,select:hover{border-color:var(--cyan);box-shadow:0 0 22px #55f6ff22;transform:translateY(-1px)}
+button.active{background:linear-gradient(100deg,#165c76,#49327f);border-color:var(--cyan)}
+select{outline:none}
+footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:18px;color:#6e80a7;font-size:10px;letter-spacing:.13em}
+footer strong{color:#a9c6e8;font-weight:600}
+@media(max-width:560px){.shell{padding:18px 13px 22px}header{padding-bottom:15px}.brand{font-size:11px;letter-spacing:.12em}.status{font-size:9px;letter-spacing:.08em}.clock-wrap{padding:29px 10px 25px;border-radius:20px}.subtitle{margin-bottom:30px}.metrics{gap:7px}.metric{padding:14px 4px}.metric .label{font-size:8px;letter-spacing:.12em}.controls{margin-top:20px}footer{font-size:9px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="stars" id="stars" aria-hidden="true"></div>
+<div class="shell">
+<header>
+  <div class="brand"><div class="logo">◈</div><span>CHRONOS <span style="color:var(--cyan)">//</span> TIME SYSTEM</span></div>
+  <div class="status"><span class="dot"></span><span>SYSTEM ONLINE</span></div>
+</header>
+<main>
+  <div class="eyebrow">TEMPORAL INTERFACE · V 01.11</div>
+  <h1>Every second counts.</h1>
+  <p class="subtitle">Precision timekeeping, wrapped in a little futuristic drama.</p>
+  <section class="clock-wrap" aria-label="Digital clock">
+    <div class="clock-label">LOCAL TIME SYNCHRONIZATION</div>
+    <div class="time" id="time" role="timer" aria-live="off">--:--:--</div>
+    <div class="date" id="date">Synchronizing date…</div>
+    <div class="tz-line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg><span id="zone">ASIA / KATHMANDU · NPT UTC+05:45</span></div>
+  </section>
+  <section class="metrics" aria-label="Time details">
+    <div class="metric"><div class="label">DAY OF YEAR</div><div class="value" id="day">---</div></div>
+    <div class="metric"><div class="label">WEEK NUMBER</div><div class="value" id="week">---</div></div>
+    <div class="metric"><div class="label">UNIX TIMESTAMP</div><div class="value" id="unix">---</div></div>
+  </section>
+  <div class="controls">
+    <select id="timezone" aria-label="Choose timezone">
+      <option value="Asia/Kathmandu">Nepal · Kathmandu (NPT)</option>
+      <option value="Asia/Tokyo">Japan · Tokyo (JST)</option>
+      <option value="Europe/London">United Kingdom · London</option>
+      <option value="Europe/Paris">France · Paris</option>
+      <option value="America/New_York">USA · New York</option>
+      <option value="America/Los_Angeles">USA · Los Angeles</option>
+      <option value="Australia/Sydney">Australia · Sydney</option>
+      <option value="UTC">UTC · Universal Time</option>
+    </select>
+    <button id="formatBtn" class="active" type="button">24-HOUR FORMAT</button>
+    <button id="fullscreenBtn" type="button">⛶ FULLSCREEN</button>
+  </div>
+</main>
+<footer><span><strong>CHRONOS CORE</strong> · REAL-TIME CLOCK</span><span>NO TRACKING · NO ADS · JUST TIME</span><span id="sync">SYNC: LIVE</span></footer>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let zone = 'Asia/Kathmandu';
+  let is24 = true;
+  const dateOptions = {weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:zone};
+  function partsInZone(date, tz) {
+    const parts = new Intl.DateTimeFormat('en-GB',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(date);
+    return Object.fromEntries(parts.filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+  }
+  function update() {
+    const now = new Date();
+    const p = partsInZone(now,zone);
+    let hour = Number(p.hour);
+    const suffix = hour >= 12 ? ' PM' : ' AM';
+    if (!is24) hour = hour % 12 || 12;
+    const hh = String(hour).padStart(2,'0');
+    $('time').innerHTML = `${hh}<span class="colon">:</span>${p.minute}<span class="colon">:</span>${p.second}${is24 ? '' : `<span style="font-size:.22em;letter-spacing:.08em;margin-left:10px;color:var(--cyan)">${suffix.trim()}</span>`}`;
+    $('date').textContent = new Intl.DateTimeFormat('en-US',{...dateOptions,timeZone:zone}).format(now).toUpperCase();
+    const dayStart = new Date(Date.UTC(now.getUTCFullYear(),0,1));
+    $('day').textContent = String(Math.floor((Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate())-dayStart.getTime())/86400000)+1).padStart(3,'0');
+    const jan1 = new Date(Date.UTC(now.getUTCFullYear(),0,1));
+    $('week').textContent = String(Math.ceil((((now-jan1)/86400000)+jan1.getUTCDay()+1)/7)).padStart(2,'0');
+    $('unix').textContent = Math.floor(now.getTime()/1000).toString();
+    const offsets = {'Asia/Kathmandu':'NPT UTC+05:45','Asia/Tokyo':'JST UTC+09:00','Europe/London':'LONDON / GMT-BST','Europe/Paris':'PARIS / CET-CEST','America/New_York':'NEW YORK / ET','America/Los_Angeles':'LOS ANGELES / PT','Australia/Sydney':'SYDNEY / AET','UTC':'UTC +00:00'};
+    $('zone').textContent = zone.replaceAll('_',' ').toUpperCase() + ' · ' + offsets[zone];
+  }
+  $('timezone').addEventListener('change',e=>{zone=e.target.value;dateOptions.timeZone=zone;update();});
+  $('formatBtn').addEventListener('click',()=>{is24=!is24;$('formatBtn').textContent=is24?'24-HOUR FORMAT':'12-HOUR FORMAT';$('formatBtn').classList.toggle('active',is24);update();});
+  $('fullscreenBtn').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen();}catch(e){$('sync').textContent='FULLSCREEN UNAVAILABLE';}});
+  const stars = $('stars');
+  for(let i=0;i<80;i++){const s=document.createElement('i');s.className='star';s.style.left=(Math.random()*100)+'%';s.style.top=(Math.random()*100)+'%';s.style.animationDelay=(Math.random()*4)+'s';s.style.animationDuration=(2+Math.random()*4)+'s';s.style.opacity=(.2+Math.random()*.8);stars.appendChild(s);}
+  update();setInterval(update,1000);
+})();
+</script>
+</body>
+</html>
